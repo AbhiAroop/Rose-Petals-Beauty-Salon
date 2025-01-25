@@ -240,3 +240,802 @@ li {
     margin-bottom: 1rem;
     text-align: center;
 }
+
+.booking-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.booking-progress {
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.booking-step {
+  margin-bottom: 2rem;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.service-card {
+  padding: 1rem;
+  border: 2px solid #f0a500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.service-card.selected {
+  background: #f0a500;
+  color: white;
+}
+
+.booking-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.booking-button {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.booking-button.next {
+  background: #f0a500;
+  color: white;
+}
+
+.booking-button.back {
+  background: #ddd;
+  color: #333;
+}
+
+/* Add to existing CSS */
+.booking-form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.date-picker {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.summary-content {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.summary-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.summary-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.summary-section h4 {
+  color: #f0a500;
+  margin-bottom: 1rem;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.total-price {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #ddd;
+  text-align: right;
+  font-size: 1.2rem;
+  color: #f0a500;
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.datetime-picker {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.date-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-select,
+.time-select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+}
+
+.date-select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.time-section {
+  margin-top: 20px;
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.booking-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.admin-calendar {
+  padding: 20px;
+  height: calc(100vh - 100px);
+}
+
+.appointment-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.appointment-info {
+  margin: 1rem 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.admin-calendar {
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.appointment-details {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.approve-btn {
+  background: #4CAF50;
+  color: white;
+}
+
+.deny-btn {
+  background: #f44336;
+  color: white;
+}
+
+.close-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.calendar-event {
+  padding: 4px 8px;
+  border-radius: 4px;
+  height: 100%;
+  min-height: 40px;
+}
+
+.event-title {
+  font-weight: bold;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-time {
+  font-size: 0.8em;
+  margin-bottom: 2px;
+}
+
+.event-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.service-tag {
+  font-size: 0.7em;
+  padding: 1px 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.status-approved {
+  background-color: #28a745;
+}
+
+.status-requested {
+  background-color: #f0a500;
+}
+
+.status-denied {
+  background-color: #dc3545;
+}
+
+.rbc-event {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.calendar-event {
+  height: calc(100% - 4px);
+  margin: 2px;
+  overflow: hidden;
+}
+
+.rbc-event {
+  min-height: unset !important;
+  height: auto !important;
+}
+
+.admin-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-calendar {
+  padding: 20px;
+  flex-grow: 1;
+  position: relative;
+}
+
+.appointment-details {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 300px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.approve-btn, .deny-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.approve-btn {
+  background-color: #90EE90;
+  color: #006400;
+}
+
+.deny-btn {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.close-btn {
+  margin-top: 15px;
+  width: 100%;
+  padding: 8px;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fc {
+  height: calc(100vh - 100px);
+}
+
+.fc-event {
+  cursor: pointer;
+}
+
+.admin-navbar {
+  background-color: #fff;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.admin-nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-nav-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-nav-left h1 {
+  color: #f0a500;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.admin-welcome {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.admin-nav-cards {
+  display: flex;
+  gap: 1rem;
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #fff;
+  border: 2px solid #f0a500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.admin-card:hover {
+  background-color: #f0a500;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-title {
+  font-weight: 500;
+}
+
+.logout {
+  border-color: #ff6b6b;
+}
+
+.logout:hover {
+  background-color: #ff6b6b;
+}
+
+.admin-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-calendar {
+  padding: 20px;
+  flex-grow: 1;
+  position: relative;
+
+}
+
+.fc {
+  height: calc(100vh - 100px) !important;
+}
+
+.fc-timegrid-event {
+  background-color: var(--fc-event-bg-color);
+  border: 1px solid var(--fc-event-border-color);
+  padding: 4px;
+}
+
+.fc-timegrid-event .fc-event-main {
+  padding: 2px 4px;
+}
+
+.fc-timegrid-event .fc-event-time {
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.appointment-details {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 300px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.approve-btn, .deny-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.approve-btn {
+  background-color: #90EE90;
+  color: #006400;
+}
+
+.deny-btn {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.close-btn {
+  margin-top: 15px;
+  width: 100%;
+  padding: 8px;
+  background-color: #e00808;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fc-event {
+  cursor: pointer;
+}
+
+.services-section {
+  margin: 1rem 0;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.service-box {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.service-price {
+  color: #f0a500;
+  font-weight: 600;
+}
+
+.appointment-details {
+  max-width: 600px;
+  width: 90%;
+}
+
+.fc-event-title {
+  font-size: 0.9em;
+  line-height: 1.3;
+  white-space: pre-wrap !important;
+}
+
+.calendar-event-content {
+  padding: 4px;
+  font-size: 0.9em;
+  position: relative;
+  padding-top: 24px;
+}
+
+.event-time {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1em;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2px;
+  border-radius: 4px;
+  margin: 0 4px;
+  border: #000000 1px solid;
+}
+
+.event-header {
+  margin-top: 4px;
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.client-info span {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.event-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.calendar-service-box {
+  background: rgba(42, 153, 187, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.event-status {
+  font-size: 0.8em;
+  font-weight: 500;
+  text-align: right;
+}
+
+.event-service-title {
+  font-size: 1em;
+  font-weight: bold;
+  color: #010002  ;
+  font-style: italic;
+}
+
+.event-client-phone-text  {
+  font-size: 1em;
+  font-weight: bold;
+  color: #7117c5;
+}
+
+.event-client-name {
+  font-size: 1em;
+  font-weight: bold;
+  color: #7117c5;
+}
+
+.admin-login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+}
+
+.admin-login-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.admin-login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.admin-login-header h1 {
+  color: #f0a500;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-login-header h2 {
+  color: #666;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #444;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #f0a500;
+}
+
+.admin-login-button {
+  background: #f0a500;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.admin-login-button:hover {
+  background: #d89400;
+}
+
+.admin-login-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.admin-login-error {
+  background: #fee;
+  color: #e44;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-icon {
+  font-style: normal;
+  color: #e44;
+}
+
+@media (max-width: 480px) {
+  .admin-login-card {
+    padding: 1.5rem;
+  }
+  
+  .admin-login-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .admin-login-header h2 {
+    font-size: 1rem;
+  }
+}

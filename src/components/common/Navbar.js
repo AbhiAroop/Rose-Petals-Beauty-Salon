@@ -20,7 +20,8 @@ export default function Navbar() {
                 <div className="nav-buttons">
                     <Link to="/" className="nav-button">Home</Link>
                     <Link to="/services" className="nav-button">Services</Link>
-                    {user ? (
+                    <Link to="/booking" className="nav-button">Book Appointment</Link>
+                    {/*{user ? (
                         <>
                             <span className="nav-welcome">Welcome, {user.FullName}</span>
                             <button onClick={handleLogout} className="nav-button">Sign Out</button>
@@ -30,7 +31,7 @@ export default function Navbar() {
                             <Link to="/login" className="nav-button">Login</Link>
                             <Link to="/register" className="nav-button">Register</Link>
                         </>
-                    )}
+                    )}*/}
                 </div>
             </div>
         </nav>

@@ -49,6 +49,60 @@ class Database {
       throw error;
     }
   }
+
+  async createBooking(bookingData) {
+    try {
+      await this.connect();
+      
+      // Check existing client
+      const [client] = await this.query(
+        'SELECT ClientID FROM Clients WHERE Phone = ?',
+        [bookingData.phone]
+      );
+
+      let clientId;
+      if (!client) {
+        // Create new client
+        const result = await this.query(
+          'INSERT INTO Clients (FullName, Phone) VALUES (?, ?)',
+          [bookingData.fullName, bookingData.phone]
+        );
+        clientId = result.insertId;
+      } else {
+        clientId = client.ClientID;
+      }
+
+      // Get next AppointmentServiceID
+      const [maxId] = await this.query(
+        'SELECT MAX(AppointmentServiceID) as maxId FROM AppointmentServices'
+      );
+      const appointmentServiceId = (maxId.maxId || 0) + 1;
+
+      // Create appointments and services
+      for (const service of bookingData.selectedServices) {
+        const appointment = await this.query(
+          `INSERT INTO Appointments 
+           (ClientID, ServiceID, AppointmentDate, TotalPrice, Status, CreatedAt)
+           VALUES (?, ?, ?, ?, "Requested", NOW())`,
+          [clientId, service.ServiceID, bookingData.appointmentTime, service.Price]
+        );
+
+        await this.query(
+          `INSERT INTO AppointmentServices 
+           (AppointmentID, ServiceID, Price, AppointmentServiceID)
+           VALUES (?, ?, ?, ?)`,
+          [appointment.insertId, service.ServiceID, service.Price, appointmentServiceId]
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Booking error:', error);
+      throw error;
+    } finally {
+      await this.disconnect();
+    }
+  }
 }
 
 module.exports = Database;

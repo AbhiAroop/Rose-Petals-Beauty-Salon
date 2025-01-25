@@ -1,0 +1,218 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import AdminNavbar from './AdminNavbar';
+import { useAdmin } from './AdminContext';
+
+const AdminCalendar = () => {
+  const [appointments, setAppointments] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const { admin } = useAdmin();
+
+  const getStatusColor = (status) => {
+    const colors = {
+      'Requested': '#ffd700',
+      'Approved': '#90EE90',
+      'Denied': '#ff6b6b',
+      'Completed': '#808080'
+    };
+    return colors[status] || '#808080';
+  };
+  
+  
+  const ServiceBox = ({ service }) => {
+    // Service format: "ServiceName ($Price)"
+    const [name, price] = service.split(' ($');
+    return (
+      <div className="service-box">
+        <div className="service-name">{name}</div>
+        <div className="service-price">${price.replace(')', '')}</div>
+      </div>
+    );
+  };
+  
+  const EventContent = ({ event }) => {
+    const startTime = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const endTime = event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const services = event.extendedProps.services.split(', ');
+  
+    return (
+      <div className="calendar-event-content">
+        <div className="event-time">
+          {startTime} - {endTime}
+        </div>
+        <div className="event-header">
+          <div className="client-info">
+            <strong className="event-client-name">Client: {event.extendedProps.clientName}</strong>
+            <strong className="event-client-phone-text">Phone: {event.extendedProps.phone}</strong>
+          </div>
+        </div>
+        <div className="event-service-title">Services: </div>
+        <div className="event-services">
+          {services.map((service, index) => (
+            <div key={index} className="calendar-service-box">
+              {service.split(' ($')[0]}
+            </div>
+          ))}
+        </div>
+        <div className="event-status" style={{ color: getStatusColor(event.extendedProps.status) }}>
+          {event.extendedProps.status}
+        </div>
+      </div>
+    );
+  };
+  
+
+  const fetchAppointments = useCallback(async () => {
+    if (!admin?.token) return;
+    try {
+      const response = await fetch('http://localhost:3001/api/admin/appointments', {
+        headers: {
+          'Authorization': `Bearer ${admin.token}`
+        }
+      });
+      const data = await response.json();
+      
+      const events = data.map(app => ({
+        id: app.AppointmentServiceID,
+        title: `${app.ClientName} - ${app.ServiceNames}`,
+        start: app.AppointmentDate,
+        end: calculateEndTime(app.AppointmentDate, app.TotalDuration),
+        extendedProps: {
+          status: app.Status,
+          services: app.Services,
+          clientName: app.ClientName,
+          phone: app.Phone,
+          duration: app.TotalDuration
+        },
+        backgroundColor: getStatusColor(app.Status),
+        borderColor: getStatusColor(app.Status),
+        textColor: '#000000',
+        display: 'block'
+      }));
+      
+      setAppointments(events);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  }, [admin]);
+
+  useEffect(() => {
+    fetchAppointments();
+    const interval = setInterval(fetchAppointments, 60000);
+    return () => clearInterval(interval);
+  }, [fetchAppointments]);
+
+  const handleEventClick = (clickInfo) => {
+    setSelectedEvent(clickInfo.event);
+  };
+
+  const handleStatusUpdate = async (appointmentId, status) => {
+    try {
+      await fetch(`http://localhost:3001/api/admin/appointments/${appointmentId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin.token}`
+        },
+        body: JSON.stringify({ status })
+      });
+      
+      fetchAppointments();
+      setSelectedEvent(null);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const calculateEndTime = (start, duration) => {
+    const startDate = new Date(start);
+    const endDate = new Date(startDate.getTime() + duration * 60000); // Convert duration to milliseconds
+    return endDate;
+  };
+
+  return (
+    <div className="admin-page">
+      <AdminNavbar />
+      <div className="admin-calendar">
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        events={appointments}
+        eventContent={EventContent}
+        eventClick={handleEventClick}
+        slotMinTime="00:00:00"
+        slotMaxTime="24:00:00"
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        }}
+        height="auto"
+        expandRows={true}
+        allDaySlot={false}
+        slotDuration="00:15:00"
+        slotLabelInterval="01:00"
+        slotLabelFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }}
+        eventTimeFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }}
+        nowIndicator={true}
+        dayMaxEvents={false}
+        eventDisplay="block"
+        displayEventTime={true}
+        displayEventEnd={true}
+      />
+        
+        {selectedEvent && (
+          <div className="appointment-details">
+            <h3>Appointment Details</h3>
+            <p><strong>Client:</strong> {selectedEvent.extendedProps.clientName}</p>
+            <p><strong>Phone:</strong> {selectedEvent.extendedProps.phone}</p>
+            <div className="services-section">
+            <h4>Services:</h4>
+            <div className="services-grid">
+              {selectedEvent.extendedProps.services.split(', ').map((service, index) => (
+                <ServiceBox key={index} service={service} />
+              ))}
+            </div>
+          </div>
+            <p><strong>Status:</strong> {selectedEvent.extendedProps.status}</p>
+            <p><strong>Total Duration:</strong> {selectedEvent.extendedProps.duration} minutes</p>
+            
+            {(
+              <div className="status-buttons">
+                <button 
+                  onClick={() => handleStatusUpdate(selectedEvent.id, 'Approved')}
+                  className="approve-btn"
+                >
+                  Approve
+                </button>
+                <button 
+                  onClick={() => handleStatusUpdate(selectedEvent.id, 'Denied')}
+                  className="deny-btn"
+                >
+                  Deny
+                </button>
+              </div>
+            )}
+            
+            <button onClick={() => setSelectedEvent(null)} className="close-btn">
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminCalendar;
