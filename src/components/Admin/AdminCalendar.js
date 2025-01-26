@@ -5,18 +5,93 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import AdminNavbar from './AdminNavbar';
 import { useAdmin } from './AdminContext';
+import AdminBookingModal from './AdminBookingModal';
 
 const AdminCalendar = () => {
   const [appointments, setAppointments] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { admin } = useAdmin();
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+  
+
+  const initiateDelete = (appointmentId) => {
+    setAppointmentToDelete(appointmentId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDateSelect = (selectInfo) => {
+    setSelectedDateTime(selectInfo.start);
+    setShowBookingModal(true);
+  };
+
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/appointments/${appointmentToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${admin.token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to delete appointment');
+
+      await fetchAppointments();
+      setSelectedEvent(null);
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+    }
+  };
+
+  const handleBookingSubmit = async (formData) => {
+    try {
+      // Format the booking data
+      const bookingData = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        services: formData.selectedServices.map(service => ({
+          ServiceID: service.ServiceID,
+          ServiceName: service.ServiceName,
+          Price: service.Price
+        })),
+        appointmentTime: new Date(formData.appointmentTime).toISOString()
+      };
+  
+      const response = await fetch('http://localhost:3001/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin.token}`
+        },
+        body: JSON.stringify(bookingData)
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Booking failed');
+      }
+  
+      await fetchAppointments(); // Refresh calendar
+      setShowBookingModal(false); // Close modal
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert(`Failed to create booking: ${error.message}`);
+    }
+  };
+
 
   const getStatusColor = (status) => {
     const colors = {
       'Requested': '#ffd700',
       'Approved': '#90EE90',
       'Denied': '#ff6b6b',
-      'Completed': '#808080'
+      'Completed': '#808080',
+      'Tentative': '#87CEEB', // Light sky blue
+      'Cancelled': '#DC143C'  // Crimson red
     };
     return colors[status] || '#808080';
   };
@@ -45,8 +120,8 @@ const AdminCalendar = () => {
         </div>
         <div className="event-header">
           <div className="client-info">
-            <strong className="event-client-name">Client: {event.extendedProps.clientName}</strong>
-            <strong className="event-client-phone-text">Phone: {event.extendedProps.phone}</strong>
+            <strong className="event-client-name-txt">Client: <strong className="event-client-name">{event.extendedProps.clientName}</strong></strong>
+            <strong className="event-client-phone-text">Phone: <strong className="event-client-phone">{event.extendedProps.phone}</strong></strong>
           </div>
         </div>
         <div className="event-service-title">Services: </div>
@@ -107,6 +182,29 @@ const AdminCalendar = () => {
 
   const handleEventClick = (clickInfo) => {
     setSelectedEvent(clickInfo.event);
+  };
+
+  const handleDeleteAppointment = async (appointmentId) => {
+    if (window.confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/appointments/${appointmentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${admin.token}`
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to delete appointment');
+        }
+  
+        await fetchAppointments(); // Refresh calendar
+        setSelectedEvent(null); // Close modal
+      } catch (error) {
+        console.error('Error deleting appointment:', error);
+        alert('Failed to delete appointment');
+      }
+    }
   };
 
   const handleStatusUpdate = async (appointmentId, status) => {
@@ -170,11 +268,23 @@ const AdminCalendar = () => {
         eventDisplay="block"
         displayEventTime={true}
         displayEventEnd={true}
+        selectable={true}
+        select={handleDateSelect}
+        
       />
+      <AdminBookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          initialDateTime={selectedDateTime}
+          onSubmit={handleBookingSubmit}
+        />
         
         {selectedEvent && (
           <div className="appointment-details">
-            <h3>Appointment Details</h3>
+            <div className="modal-header">
+              <h3>Appointment Details</h3>
+              <span className="close-icon" onClick={() => setSelectedEvent(null)}>×</span>
+            </div>
             <p><strong>Client:</strong> {selectedEvent.extendedProps.clientName}</p>
             <p><strong>Phone:</strong> {selectedEvent.extendedProps.phone}</p>
             <div className="services-section">
@@ -189,27 +299,65 @@ const AdminCalendar = () => {
             <p><strong>Total Duration:</strong> {selectedEvent.extendedProps.duration} minutes</p>
             
             {(
+              <div className="action-buttons">
               <div className="status-buttons">
                 <button 
                   onClick={() => handleStatusUpdate(selectedEvent.id, 'Approved')}
                   className="approve-btn"
                 >
-                  Approve
+                  Confirm
+                </button>
+                <button 
+                  onClick={() => handleStatusUpdate(selectedEvent.id, 'Tentative')}
+                  className="tentative-btn"
+                >
+                  Tentative
+                </button>
+                <button 
+                  onClick={() => handleStatusUpdate(selectedEvent.id, 'Cancelled')}
+                  className="cancelled-btn"
+                >
+                  Cancel
                 </button>
                 <button 
                   onClick={() => handleStatusUpdate(selectedEvent.id, 'Denied')}
                   className="deny-btn"
                 >
-                  Deny
+                  Decline
                 </button>
+               </div>
               </div>
             )}
-            
-            <button onClick={() => setSelectedEvent(null)} className="close-btn">
-              Close
-            </button>
+            <button 
+              onClick={() => initiateDelete(selectedEvent.id)}
+              className="delete-btn"
+          >
+            Delete Appointment
+          </button>
           </div>
         )}
+        {showDeleteConfirm && (
+        <div className="delete-confirmation-modal">
+          <div className="delete-confirmation-content">
+            <h3>Delete Appointment</h3>
+            <p>Are you sure you want to delete this appointment? This action cannot be undone.</p>
+            <div className="delete-confirmation-buttons">
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className="cancel-delete-btn"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteConfirm}
+                className="confirm-delete-btn"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

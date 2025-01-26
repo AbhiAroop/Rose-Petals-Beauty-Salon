@@ -54,6 +54,155 @@ const authenticateAdmin = (req, res, next) => {
   }
 };
 
+app.post('/api/bookings', authenticateAdmin, async (req, res) => {
+  const db = new Database();
+  try {
+    const { fullName, phone, services, appointmentTime } = req.body;
+
+    // Start transaction
+    await db.query('START TRANSACTION');
+
+    // Check/Create client
+    let clientId;
+    const [existingClient] = await db.query('SELECT ClientID FROM Clients WHERE Phone = ?', [phone]);
+    
+    if (existingClient) {
+      clientId = existingClient.ClientID;
+    } else {
+      const clientResult = await db.query(
+        'INSERT INTO Clients (FullName, Phone) VALUES (?, ?)',
+        [fullName, phone]
+      );
+      clientId = clientResult.insertId;
+    }
+
+    // Generate unique AppointmentServiceID
+    const [maxServiceId] = await db.query('SELECT MAX(AppointmentServiceID) as maxId FROM AppointmentServices');
+    const appointmentServiceId = (maxServiceId.maxId || 0) + 1;
+
+    // Create appointments for each service
+    for (const service of services) {
+      const appointmentResult = await db.query(
+        `INSERT INTO Appointments (ClientID, ServiceID, AppointmentDate, Status, CreatedAt)
+         VALUES (?, ?, ?, 'Requested', NOW())`,
+        [clientId, service.ServiceID, appointmentTime]
+      );
+
+      await db.query(
+        `INSERT INTO AppointmentServices (AppointmentID, ServiceID, Price, AppointmentServiceID)
+         VALUES (?, ?, ?, ?)`,
+        [appointmentResult.insertId, service.ServiceID, service.Price, appointmentServiceId]
+      );
+    }
+
+    await db.query('COMMIT');
+    res.status(201).json({ message: 'Booking created successfully' });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    console.error('Booking error:', error);
+    res.status(500).json({ error: 'Failed to create booking' });
+  } finally {
+    await db.disconnect();
+  }
+});
+
+// Add edit endpoint after existing routes
+app.put('/api/appointments/:id/edit', authenticateAdmin, async (req, res) => {
+  const db = new Database();
+  try {
+    const { field, value } = req.body;
+    const appointmentServiceId = req.params.id;
+
+    await db.query('START TRANSACTION');
+
+    switch (field) {
+      case 'name':
+        await db.query(`
+          UPDATE Clients c
+          JOIN Appointments a ON c.ClientID = a.ClientID
+          JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID
+          SET c.FullName = ?
+          WHERE aps.AppointmentServiceID = ?
+        `, [value, appointmentServiceId]);
+        break;
+
+      case 'phone':
+        await db.query(`
+          UPDATE Clients c
+          JOIN Appointments a ON c.ClientID = a.ClientID
+          JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID
+          SET c.Phone = ?
+          WHERE aps.AppointmentServiceID = ?
+        `, [value, appointmentServiceId]);
+        break;
+
+      case 'services':
+        // Delete existing services
+        await db.query(`
+          DELETE aps FROM AppointmentServices aps
+          WHERE aps.AppointmentServiceID = ?
+        `, [appointmentServiceId]);
+
+        // Insert new services
+        for (const service of value) {
+          await db.query(`
+            INSERT INTO AppointmentServices (AppointmentID, ServiceID, Price, AppointmentServiceID)
+            SELECT a.AppointmentID, ?, ?, ?
+            FROM Appointments a
+            JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID
+            WHERE aps.AppointmentServiceID = ?
+            LIMIT 1
+          `, [service.ServiceID, service.Price, appointmentServiceId, appointmentServiceId]);
+        }
+        break;
+
+      default:
+        throw new Error('Invalid field for edit');
+    }
+
+    await db.query('COMMIT');
+    res.json({ message: 'Update successful' });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    console.error('Update error:', error);
+    res.status(500).json({ error: 'Failed to update appointment' });
+  } finally {
+    await db.disconnect();
+  }
+});
+
+//Delete appointment
+app.delete('/api/appointments/:id', authenticateAdmin, async (req, res) => {
+  const db = new Database();
+  try {
+    const appointmentServiceId = req.params.id;
+
+    await db.query('START TRANSACTION');
+
+    // Delete from AppointmentServices
+    await db.query(`
+      DELETE aps FROM AppointmentServices aps
+      WHERE aps.AppointmentServiceID = ?
+    `, [appointmentServiceId]);
+
+    // Delete from Appointments
+    await db.query(`
+      DELETE a FROM Appointments a
+      JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID
+      WHERE aps.AppointmentServiceID = ?
+    `, [appointmentServiceId]);
+
+    await db.query('COMMIT');
+    res.json({ message: 'Appointment deleted successfully' });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Failed to delete appointment' });
+  } finally {
+    await db.disconnect();
+  }
+});
+
 // Get appointments for staff member
 app.get('/api/admin/appointments', authenticateAdmin, async (req, res) => {
   const db = new Database();
@@ -101,7 +250,7 @@ app.put('/api/admin/appointments/:id/status', authenticateAdmin, async (req, res
     const appointmentServiceId = req.params.id;
 
     // Validate status
-    const validStatuses = ['Approved', 'Denied', 'Completed'];
+    const validStatuses = ['Approved', 'Denied', 'Completed', 'Tentative', 'Cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
