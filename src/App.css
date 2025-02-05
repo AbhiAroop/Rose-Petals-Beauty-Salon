@@ -545,7 +545,7 @@ li {
 .event-services {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 1px;
 }
 
 .service-tag {
@@ -560,7 +560,7 @@ li {
 }
 
 .status-requested {
-  background-color: #f0a500;
+  background-color: #ee308f;
 }
 
 .status-denied {
@@ -791,7 +791,7 @@ li {
 }
 
 .tentative-btn {
-  background-color: #fafd25;
+  background-color: #ff30ba;
   color: #000000;
 }
 
@@ -1274,4 +1274,112 @@ li {
   background: #dc3545;
   color: white;
   cursor: pointer;
+}
+
+.appointment-datetime {
+  background: #54cfcf63;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.appointment-datetime p {
+  margin: 5px 0;
+}
+
+.event-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-time {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #333;
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.event-client-name {
+  font-weight: bold;
+}
+
+.event-client-phone {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.event-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.calendar-service-box {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.75em;
+  white-space: nowrap;
+}
+
+.event-status {
+  margin-top: auto;
+  font-size: 0.8em;
+  text-align: right;
+}
+
+/* Add to your CSS file */
+.error {
+  border-color: #ff6b6b !important;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.8em;
+  margin-top: 4px;
+  display: block;
+}
+
+.phone-input-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E8A2A2;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.phone-prefix {
+  background-color: #F4C2C2;
+  color: #4A4A4A;
+  padding: 10px;
+  font-weight: bold;
+  border-right: 1px solid #E8A2A2;
+}
+
+.phone-input {
+  border: none !important;
+  padding: 10px;
+  flex: 1;
+  outline: none;
+}
+
+.phone-input-container:focus-within {
+  border-color: #E8A2A2;
+  box-shadow: 0 0 0 2px rgba(232, 162, 162, 0.2);
+}
+
+.phone-input.error {
+  border: none !important;
+}
+
+.phone-input-container.error {
+  border-color: #ff6b6b;
 }

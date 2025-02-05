@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 
 const AdminNewBookingModal = ({ isOpen, onClose, initialDateTime, onSubmit }) => {
+  const formatDateTimeForInput = (date) => {
+    if (!date) return '';
+    
+    // Adjust for local timezone
+    const localDate = new Date(date);
+    const offset = localDate.getTimezoneOffset();
+    const adjustedDate = new Date(localDate.getTime() - (offset * 60 * 1000));
+    
+    return adjustedDate.toISOString().slice(0, 16);
+  };
+
   const defaultFormData = {
     fullName: '',
     phone: '',
     selectedServices: [],
-    appointmentTime: initialDateTime || new Date()
+    appointmentTime: formatDateTimeForInput(initialDateTime)
   };
 
   const [formData, setFormData] = useState(defaultFormData);
@@ -13,10 +24,13 @@ const AdminNewBookingModal = ({ isOpen, onClose, initialDateTime, onSubmit }) =>
 
   // Reset form when modal closes
   useEffect(() => {
-    if (!isOpen) {
-      setFormData(defaultFormData);
+    if (initialDateTime) {
+      setFormData(prev => ({
+        ...prev,
+        appointmentTime: formatDateTimeForInput(initialDateTime)
+      }));
     }
-  }, [isOpen, initialDateTime]);
+  }, [initialDateTime]);
 
   useEffect(() => {
     fetchServices();
@@ -24,7 +38,7 @@ const AdminNewBookingModal = ({ isOpen, onClose, initialDateTime, onSubmit }) =>
 
   const fetchServices = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/services');
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/services');
       const data = await response.json();
       setServices(data);
     } catch (error) {
@@ -34,7 +48,16 @@ const AdminNewBookingModal = ({ isOpen, onClose, initialDateTime, onSubmit }) =>
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Ensure time is in local timezone
+    const localDate = new Date(formData.appointmentTime);
+    
+    const submissionData = {
+      ...formData,
+      appointmentTime: localDate.toISOString()
+    };
+    
+    onSubmit(submissionData);
     setFormData(defaultFormData);
   };
 
@@ -97,12 +120,12 @@ const AdminNewBookingModal = ({ isOpen, onClose, initialDateTime, onSubmit }) =>
 
           <div className="form-section">
             <h3>Appointment Time</h3>
-            <input
-              type="datetime-local"
-              value={formData.appointmentTime}
-              onChange={e => setFormData({...formData, appointmentTime: e.target.value})}
-              required
-            />
+                <input
+                  type="datetime-local"
+                  value={formData.appointmentTime}
+                  onChange={e => setFormData({...formData, appointmentTime: e.target.value})}
+                  required
+                />
           </div>
 
           <div className="modal-buttons">

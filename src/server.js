@@ -179,24 +179,19 @@ app.delete('/api/appointments/:id', authenticateAdmin, async (req, res) => {
 
     await db.query('START TRANSACTION');
 
-    // Delete from AppointmentServices
+    // Update status to 'Deleted' instead of deleting
     await db.query(`
-      DELETE aps FROM AppointmentServices aps
-      WHERE aps.AppointmentServiceID = ?
-    `, [appointmentServiceId]);
-
-    // Delete from Appointments
-    await db.query(`
-      DELETE a FROM Appointments a
+      UPDATE Appointments a
       JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID
+      SET a.Status = 'Deleted'
       WHERE aps.AppointmentServiceID = ?
     `, [appointmentServiceId]);
 
     await db.query('COMMIT');
-    res.json({ message: 'Appointment deleted successfully' });
+    res.json({ message: 'Appointment marked as deleted' });
   } catch (error) {
     await db.query('ROLLBACK');
-    console.error('Delete error:', error);
+    console.error('Update error:', error);
     res.status(500).json({ error: 'Failed to delete appointment' });
   } finally {
     await db.disconnect();
@@ -227,6 +222,7 @@ app.get('/api/admin/appointments', authenticateAdmin, async (req, res) => {
       JOIN Appointments a ON a.AppointmentID = aps.AppointmentID
       JOIN Service s ON s.ServiceID = aps.ServiceID
       JOIN Clients c ON c.ClientID = a.ClientID
+      WHERE a.Status != 'Deleted'
       GROUP BY 
         aps.AppointmentServiceID,
         c.FullName,

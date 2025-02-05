@@ -18,7 +18,7 @@ const BookingPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/bookings', {
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingData)

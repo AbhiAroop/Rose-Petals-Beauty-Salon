@@ -6,7 +6,7 @@ const ServiceSelection = ({ data, setData, onNext, onBack }) => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/services');
+        const response = await fetch('https://rose-petals-backend.vercel.app/api/services');
         const data = await response.json();
         setServices(data);
       } catch (error) {

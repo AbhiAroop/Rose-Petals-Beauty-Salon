@@ -30,26 +30,29 @@ const AdminCalendar = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/appointments/${appointmentToDelete}`, {
+      const response = await fetch(`https://rose-petals-backend.vercel.app/api/appointments/${appointmentToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${admin.token}`
         }
       });
-
-      if (!response.ok) throw new Error('Failed to delete appointment');
-
+  
+      if (!response.ok) throw new Error('Failed to update appointment status');
+  
       await fetchAppointments();
       setSelectedEvent(null);
       setShowDeleteConfirm(false);
     } catch (error) {
-      console.error('Error deleting appointment:', error);
+      console.error('Error updating appointment:', error);
     }
   };
 
   const handleBookingSubmit = async (formData) => {
     try {
-      // Format the booking data
+      // Convert to AEST (UTC+10)
+      const localDate = new Date(formData.appointmentTime);
+      const aestDate = new Date(localDate.getTime() + (11 * 60 * 60 * 1000));
+  
       const bookingData = {
         fullName: formData.fullName,
         phone: formData.phone,
@@ -58,10 +61,10 @@ const AdminCalendar = () => {
           ServiceName: service.ServiceName,
           Price: service.Price
         })),
-        appointmentTime: new Date(formData.appointmentTime).toISOString()
+        appointmentTime: aestDate.toISOString()
       };
   
-      const response = await fetch('http://localhost:3001/api/bookings', {
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,8 +78,8 @@ const AdminCalendar = () => {
         throw new Error(errorData.error || 'Booking failed');
       }
   
-      await fetchAppointments(); // Refresh calendar
-      setShowBookingModal(false); // Close modal
+      await fetchAppointments();
+      setShowBookingModal(false);
     } catch (error) {
       console.error('Error creating booking:', error);
       alert(`Failed to create booking: ${error.message}`);
@@ -86,12 +89,13 @@ const AdminCalendar = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'Requested': '#ffd700',
+      'Requested': '#ee308f',
       'Approved': '#90EE90',
       'Denied': '#ff6b6b',
       'Completed': '#808080',
-      'Tentative': '#87CEEB', // Light sky blue
-      'Cancelled': '#DC143C'  // Crimson red
+      'Tentative': '#ee308f',
+      'Cancelled': '#DC143C',
+      'Deleted': '#000000'  // Won't be used as deleted appointments aren't displayed
     };
     return colors[status] || '#808080';
   };
@@ -124,7 +128,6 @@ const AdminCalendar = () => {
             <strong className="event-client-phone-text">Phone: <strong className="event-client-phone">{event.extendedProps.phone}</strong></strong>
           </div>
         </div>
-        <div className="event-service-title">Services: </div>
         <div className="event-services">
           {services.map((service, index) => (
             <div key={index} className="calendar-service-box">
@@ -143,7 +146,7 @@ const AdminCalendar = () => {
   const fetchAppointments = useCallback(async () => {
     if (!admin?.token) return;
     try {
-      const response = await fetch('http://localhost:3001/api/admin/appointments', {
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/admin/appointments', {
         headers: {
           'Authorization': `Bearer ${admin.token}`
         }
@@ -184,32 +187,9 @@ const AdminCalendar = () => {
     setSelectedEvent(clickInfo.event);
   };
 
-  const handleDeleteAppointment = async (appointmentId) => {
-    if (window.confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
-      try {
-        const response = await fetch(`http://localhost:3001/api/appointments/${appointmentId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${admin.token}`
-          }
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to delete appointment');
-        }
-  
-        await fetchAppointments(); // Refresh calendar
-        setSelectedEvent(null); // Close modal
-      } catch (error) {
-        console.error('Error deleting appointment:', error);
-        alert('Failed to delete appointment');
-      }
-    }
-  };
-
   const handleStatusUpdate = async (appointmentId, status) => {
     try {
-      await fetch(`http://localhost:3001/api/admin/appointments/${appointmentId}/status`, {
+      await fetch(`https://rose-petals-backend.vercel.app/api/admin/appointments/${appointmentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,6 +209,23 @@ const AdminCalendar = () => {
     const startDate = new Date(start);
     const endDate = new Date(startDate.getTime() + duration * 60000); // Convert duration to milliseconds
     return endDate;
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+  
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   return (
@@ -266,6 +263,10 @@ const AdminCalendar = () => {
         nowIndicator={true}
         dayMaxEvents={false}
         eventDisplay="block"
+        slotEventOverlap={false}
+        eventMinHeight={100}
+        slotMinHeight={100}
+        contentHeight="auto"
         displayEventTime={true}
         displayEventEnd={true}
         selectable={true}
@@ -294,6 +295,10 @@ const AdminCalendar = () => {
                 <ServiceBox key={index} service={service} />
               ))}
             </div>
+          </div>
+          <div className="appointment-datetime">
+            <p><strong>Date:</strong> {formatDate(selectedEvent.start)}</p>
+            <p><strong>Time:</strong> {formatTime(selectedEvent.start)} - {formatTime(selectedEvent.end)}</p>
           </div>
             <p><strong>Status:</strong> {selectedEvent.extendedProps.status}</p>
             <p><strong>Total Duration:</strong> {selectedEvent.extendedProps.duration} minutes</p>
