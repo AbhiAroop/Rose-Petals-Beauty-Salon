@@ -2,15 +2,35 @@ import React, { useState, useEffect } from 'react';
 
 const ServiceSelection = ({ data, setData, onNext, onBack }) => {
   const [services, setServices] = useState([]);
+  const [error, setError] = useState(null);  // Add error state
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('https://rose-petals-backend.vercel.app/api/services');
+        const response = await fetch('https://rose-petals-backend.vercel.app/api/services', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+    
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch services');
+        }
+    
         const data = await response.json();
+        
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid service data received');
+        }
+    
         setServices(data);
-      } catch (error) {
-        console.error('Error fetching services:', error);
+        setError(null); // Clear any previous errors
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        setError(err.message);
       }
     };
     fetchServices();
@@ -31,24 +51,39 @@ const ServiceSelection = ({ data, setData, onNext, onBack }) => {
     }
   };
 
-  return (
+   return (
     <div className="booking-step">
       <h3>Select Services</h3>
-      <div className="service-grid">
-        {services.map(service => (
-          <div
-            key={service.ServiceID}
-            className={`service-card ${
-              data.selectedServices.some(s => s.ServiceID === service.ServiceID) ? 'selected' : ''
-            }`}
-            onClick={() => toggleService(service)}
-          >
-            <h4>{service.ServiceName}</h4>
-            <p>{service.ServiceDesc}</p>
-            <p className="price">${service.Price}</p>
-          </div>
-        ))}
-      </div>
+      
+      {/* Add error message display */}
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Show loading state or services */}
+      {!error && services.length === 0 ? (
+        <div className="loading">Loading services...</div>
+      ) : (
+        <div className="service-grid">
+          {services.map(service => (
+            <div
+              key={service.ServiceID}
+              className={`service-card ${
+                data.selectedServices.some(s => s.ServiceID === service.ServiceID) ? 'selected' : ''
+              }`}
+              onClick={() => toggleService(service)}
+            >
+              <h4>{service.ServiceName}</h4>
+              <p>{service.Description}</p>
+              <p className="price">${service.Price}</p>
+              <p className="duration">{service.Duration} mins</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="booking-buttons">
         <button onClick={onBack} className="booking-button back">
           Back

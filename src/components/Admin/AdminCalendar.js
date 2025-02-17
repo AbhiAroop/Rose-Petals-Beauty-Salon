@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -15,8 +16,89 @@ const AdminCalendar = () => {
   const [selectedDateTime, setSelectedDateTime] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+  const navigate = useNavigate();
   
+  const getStatusColor = useCallback((status) => {
+    const colors = {
+      'Requested': '#ee308f',
+      'Approved': '#90EE90',
+      'Denied': '#ff6b6b',
+      'Completed': '#808080',
+      'Tentative': '#ee308f',
+      'Cancelled': '#DC143C',
+      'Deleted': '#000000'
+    };
+    return colors[status] || '#808080';
+  }, []);
 
+  const calculateEndTime = useCallback((start, duration) => {
+    const startDate = new Date(start);
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+    return endDate;
+  }, []);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!admin?.token) {
+      console.error('No admin token available');
+      return;
+    }
+  
+    try {
+      console.log('Fetching appointments with token:', admin.token.substring(0, 20) + '...');
+  
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/admin/appointments', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${admin.token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+  
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('Token validation failed - redirecting to login');
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('Received appointments:', data);
+  
+      if (!Array.isArray(data)) {
+        throw new Error('Expected array of appointments');
+      }
+  
+      const events = data.map(app => ({
+        id: app.AppointmentServiceID,
+        title: `${app.ClientName} - ${app.ServiceNames}`,
+        start: new Date(app.AppointmentDate),
+        end: calculateEndTime(app.AppointmentDate, app.TotalDuration),
+        extendedProps: {
+          status: app.Status,
+          services: app.Services,
+          clientName: app.ClientName,
+          phone: app.Phone,
+          duration: app.TotalDuration
+        },
+        backgroundColor: getStatusColor(app.Status),
+        borderColor: getStatusColor(app.Status),
+        textColor: '#000000',
+        display: 'block'
+      }));
+      
+      setAppointments(events);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      if (error.message.includes('401')) {
+        navigate('/admin/login');
+      }
+    }
+  }, [admin, calculateEndTime, getStatusColor, navigate]);
+  
   const initiateDelete = (appointmentId) => {
     setAppointmentToDelete(appointmentId);
     setShowDeleteConfirm(true);
@@ -49,6 +131,10 @@ const AdminCalendar = () => {
 
   const handleBookingSubmit = async (formData) => {
     try {
+      if (!admin?.token) {
+        throw new Error('No admin token available');
+      }
+  
       // Convert to AEST (UTC+10)
       const localDate = new Date(formData.appointmentTime);
       const aestDate = new Date(localDate.getTime() + (11 * 60 * 60 * 1000));
@@ -78,28 +164,13 @@ const AdminCalendar = () => {
         throw new Error(errorData.error || 'Booking failed');
       }
   
-      await fetchAppointments();
+      await fetchAppointments(); // Refresh the calendar
       setShowBookingModal(false);
     } catch (error) {
       console.error('Error creating booking:', error);
       alert(`Failed to create booking: ${error.message}`);
     }
-  };
-
-
-  const getStatusColor = (status) => {
-    const colors = {
-      'Requested': '#ee308f',
-      'Approved': '#90EE90',
-      'Denied': '#ff6b6b',
-      'Completed': '#808080',
-      'Tentative': '#ee308f',
-      'Cancelled': '#DC143C',
-      'Deleted': '#000000'  // Won't be used as deleted appointments aren't displayed
-    };
-    return colors[status] || '#808080';
-  };
-  
+  }; 
   
   const ServiceBox = ({ service }) => {
     // Service format: "ServiceName ($Price)"
@@ -143,45 +214,22 @@ const AdminCalendar = () => {
   };
   
 
-  const fetchAppointments = useCallback(async () => {
-    if (!admin?.token) return;
-    try {
-      const response = await fetch('https://rose-petals-backend.vercel.app/api/admin/appointments', {
-        headers: {
-          'Authorization': `Bearer ${admin.token}`
-        }
-      });
-      const data = await response.json();
-      
-      const events = data.map(app => ({
-        id: app.AppointmentServiceID,
-        title: `${app.ClientName} - ${app.ServiceNames}`,
-        start: app.AppointmentDate,
-        end: calculateEndTime(app.AppointmentDate, app.TotalDuration),
-        extendedProps: {
-          status: app.Status,
-          services: app.Services,
-          clientName: app.ClientName,
-          phone: app.Phone,
-          duration: app.TotalDuration
-        },
-        backgroundColor: getStatusColor(app.Status),
-        borderColor: getStatusColor(app.Status),
-        textColor: '#000000',
-        display: 'block'
-      }));
-      
-      setAppointments(events);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-    }
-  }, [admin]);
-
   useEffect(() => {
-    fetchAppointments();
-    const interval = setInterval(fetchAppointments, 60000);
+    const checkAuthAndFetch = async () => {
+      if (!admin?.token) {
+        console.error('No admin token found');
+        return;
+      }
+
+      await fetchAppointments();
+    };
+
+    checkAuthAndFetch();
+
+    // Refresh every 5 minutes instead of every minute
+    const interval = setInterval(fetchAppointments, 300000);
     return () => clearInterval(interval);
-  }, [fetchAppointments]);
+  }, [admin, fetchAppointments]);
 
   const handleEventClick = (clickInfo) => {
     setSelectedEvent(clickInfo.event);
@@ -205,12 +253,6 @@ const AdminCalendar = () => {
     }
   };
 
-  const calculateEndTime = (start, duration) => {
-    const startDate = new Date(start);
-    const endDate = new Date(startDate.getTime() + duration * 60000); // Convert duration to milliseconds
-    return endDate;
-  };
-
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -232,45 +274,44 @@ const AdminCalendar = () => {
     <div className="admin-page">
       <AdminNavbar />
       <div className="admin-calendar">
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        events={appointments}
-        eventContent={EventContent}
-        eventClick={handleEventClick}
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        height="auto"
-        expandRows={true}
-        allDaySlot={false}
-        slotDuration="00:15:00"
-        slotLabelInterval="01:00"
-        slotLabelFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }}
-        eventTimeFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }}
-        nowIndicator={true}
-        dayMaxEvents={false}
-        eventDisplay="block"
-        slotEventOverlap={false}
-        eventMinHeight={100}
-        slotMinHeight={100}
-        contentHeight="auto"
-        displayEventTime={true}
-        displayEventEnd={true}
-        selectable={true}
-        select={handleDateSelect}
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          events={appointments}
+          eventContent={EventContent}
+          eventClick={handleEventClick}
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
+          height="auto"
+          expandRows={true}
+          allDaySlot={false}
+          slotDuration="00:15:00"
+          slotLabelInterval="01:00"
+          slotLabelFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }}
+          eventTimeFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }}
+          nowIndicator={true}
+          dayMaxEvents={false}
+          eventDisplay="block"
+          slotEventOverlap={false}
+          eventMinHeight={100}
+          contentHeight="auto"
+          displayEventTime={true}
+          displayEventEnd={true}
+          selectable={true}
+          select={handleDateSelect}
         
       />
       <AdminBookingModal

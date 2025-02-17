@@ -1,0 +1,161 @@
+.booking-page {
+    background: linear-gradient(to right, #fff5f5, #fff0f0);
+    min-height: 100vh;
+    padding: 3rem 1rem;
+}
+
+.booking-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(212, 120, 143, 0.1);
+    padding: 2rem;
+}
+
+.booking-title {
+    text-align: center;
+    color: #d4788f;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+}
+
+.booking-progress {
+    margin-bottom: 3rem;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: 0 1rem;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ffd1dc;
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-number {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #ffd1dc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #855858;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+    background: #d4788f;
+    border-color: #d4788f;
+    color: white;
+}
+
+.step.completed .step-number {
+    background: #855858;
+    border-color: #855858;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: #855858;
+    font-weight: 500;
+}
+
+.booking-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+/* Common form styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    color: #855858;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ffd1dc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #d4788f;
+}
+
+.btn {
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #d4788f;
+    color: white;
+}
+
+.btn-secondary {
+    background: white;
+    color: #d4788f;
+    border: 1px solid #d4788f;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(212, 120, 143, 0.2);
+}
+
+@media (max-width: 768px) {
+    .booking-container {
+        padding: 1rem;
+    }
+
+    .booking-title {
+        font-size: 1.8rem;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .progress-steps {
+        margin: 0;
+    }
+}

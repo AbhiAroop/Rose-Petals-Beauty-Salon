@@ -1,16 +1,17 @@
 import React from 'react';
+import '../styles/ServiceCard.css';
 
 const ServiceCard = ({ service }) => {
-    const priceDisplay = service.priceFrom==="true"
-        ? `From $${service.Price}` 
-        : `$${service.Price}`;
-
     return (
         <div className="service-card">
-            <h3>{service.ServiceName}</h3>
-            <h4>{service.ServiceShortHeading}</h4>
-            <p>{service.ServiceDesc}</p>
-            <div className="price-tag">{priceDisplay}</div>
+            <div className="service-content">
+                <h3 className="service-name">{service.ServiceName}</h3>
+                <p className="service-description">{service.ServiceDesc}</p>
+                <div className="service-details">
+                    <span className="service-duration">{service.Duration} mins</span>
+                    <span className="service-price">${service.Price}</span>
+                </div>
+            </div>
         </div>
     );
 };

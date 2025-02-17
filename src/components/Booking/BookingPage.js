@@ -3,6 +3,7 @@ import ClientInfoForm from './ClientInfoForm';
 import ServiceSelection from './ServiceSelection';
 import TimeSelection from './TimeSelection';
 import BookingSummary from './BookingSummary';
+import '../styles/BookingPage.css';
 
 const BookingPage = () => {
   const [step, setStep] = useState(1);
@@ -65,14 +66,33 @@ const BookingPage = () => {
   };
 
   return (
-    <div className="booking-container">
-      <h2>Book an Appointment</h2>
-      <div className="booking-progress">
-        Step {step} of 4
-      </div>
-      {renderStep()}
+    <div className="booking-page">
+        <div className="booking-container">
+            <h2 className="booking-title">Book an Appointment</h2>
+            <div className="booking-progress">
+                <div className="progress-steps">
+                    {[1, 2, 3, 4].map(num => (
+                        <div 
+                            key={num} 
+                            className={`step ${num === step ? 'active' : ''} 
+                                      ${num < step ? 'completed' : ''}`}
+                        >
+                            <div className="step-number">{num}</div>
+                            <div className="step-label">
+                                {num === 1 && 'Your Info'}
+                                {num === 2 && 'Services'}
+                                {num === 3 && 'Time'}
+                                {num === 4 && 'Summary'}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div className="booking-content">
+                {renderStep()}
+            </div>
+        </div>
     </div>
-  );
-};
+);};
 
 export default BookingPage;

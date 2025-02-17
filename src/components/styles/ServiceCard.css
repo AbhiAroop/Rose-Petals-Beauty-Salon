@@ -1,0 +1,58 @@
+.service-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(212, 120, 143, 0.15);
+}
+
+.service-content {
+    padding: 1.5rem;
+}
+
+.service-name {
+    color: #d4788f;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem; /* Increased from default spacing */
+    padding-bottom: 0.75rem;
+}
+
+.service-description {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.service-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ffd1dc;
+}
+
+.service-duration {
+    color: #855858;
+    font-size: 0.9rem;
+}
+
+.service-price {
+    color: #d4788f;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .service-card {
+        margin: 0 1rem;
+    }
+}

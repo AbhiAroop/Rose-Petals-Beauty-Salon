@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ServiceCard from './ServiceCard';
+import '../styles/ServiceList.css';
 
 const ServiceList = () => {
     const [services, setServices] = useState([]);
@@ -49,19 +50,22 @@ const ServiceList = () => {
     }
 
     return (
-        <div className="services-container">
-            {Object.entries(services).map(([type, serviceList]) => (
-                <div key={type} className="service-type-section">
-                    <h2>{type}</h2>
-                    <div className="service-grid">
-                        {serviceList.map((service, index) => (
-                            <ServiceCard key={`${type}-${index}`} service={service} />
-                        ))}
+        <div className="services-page">
+            <h1 className="services-title">Our Services</h1>
+            <div className="services-container">
+                {Object.entries(services).map(([type, serviceList]) => (
+                    <div key={type} className="service-type-section">
+                        <h2 className="service-type-title">{type}</h2>
+                        <div className="service-grid">
+                            {serviceList.map((service, index) => (
+                                <ServiceCard key={`${type}-${index}`} service={service} />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
-};
+}
 
 export default ServiceList;

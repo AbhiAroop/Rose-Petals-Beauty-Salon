@@ -1,0 +1,128 @@
+.booking-step {
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+}
+
+.booking-step h3 {
+    color: #d4788f;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.summary-content {
+    background: #fff5f5;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.summary-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #ffd1dc;
+}
+
+.summary-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.summary-section h4 {
+    color: #855858;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.summary-section p {
+    color: #666;
+    line-height: 1.6;
+    margin: 0.5rem 0;
+}
+
+.service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    color: #666;
+}
+
+.total-price {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px dashed #ffd1dc;
+    text-align: right;
+    font-size: 1.2rem;
+    color: #d4788f;
+}
+
+.booking-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.booking-button {
+    padding: 0.8rem 2rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 150px;
+}
+
+.booking-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.booking-button.back {
+    background: white;
+    color: #d4788f;
+    border: 1px solid #d4788f;
+}
+
+.booking-button.next {
+    background: #d4788f;
+    color: white;
+}
+
+.booking-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(212, 120, 143, 0.2);
+}
+
+.error-message {
+    background: #fff0f0;
+    color: #d4788f;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #ffd1dc;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .booking-step {
+        padding: 1rem;
+    }
+
+    .summary-content {
+        padding: 1rem;
+    }
+
+    .booking-buttons {
+        flex-direction: column;
+    }
+
+    .booking-button {
+        width: 100%;
+    }
+}

@@ -1383,3 +1383,58 @@ li {
 .phone-input-container.error {
   border-color: #ff6b6b;
 }
+
+.footer {
+  background: linear-gradient(to right, #fff5f5, #fff0f0);
+  padding: 2rem 0;
+  border-top: 1px solid #ffd1dc;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  color: #4a4a4a;
+}
+
+.copyright {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.social-text {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #855858;
+  font-style: italic;
+}
+
+.social-media {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.social-link {
+  color: #d4788f;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  color: #ff69b4;
+  transform: translateY(-2px);
+}
+
+.admin-link {
+  color: #bbb;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+  margin-left: 1rem;
+}
+
+.admin-link:hover {
+  color: #999;
+  opacity: 1;
+}

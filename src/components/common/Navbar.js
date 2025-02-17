@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Auth/AuthContext';
+import '../styles/Navbar.css';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -15,7 +16,7 @@ export default function Navbar() {
         <nav className="navbar">
             <div className="nav-container">
                 <Link to="/" className="nav-logo">
-                    Rose Petals
+                    ✿ Rose Petals
                 </Link>
                 <div className="nav-buttons">
                     <Link to="/" className="nav-button">Home</Link>

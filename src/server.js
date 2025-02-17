@@ -7,9 +7,17 @@ const Database = require('./components/common/connection.js');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
 const JWT_SECRET = 'your-secret-key';
 
+// Admin login
 // Admin login
 app.post('/api/admin/login', async (req, res) => {
   const db = new Database();
@@ -22,7 +30,11 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = jwt.sign({ staffId: staff.StaffID }, 'your-secret-key', { expiresIn: '24h' });
+    // Generate new token
+    const token = jwt.sign({ staffId: staff.StaffID }, JWT_SECRET, { expiresIn: '24h' });
+    
+    // Update token in database
+    await db.query('UPDATE Staff SET token = ? WHERE StaffID = ?', [token, staff.StaffID]);
     
     res.json({
       token,
@@ -31,26 +43,45 @@ app.post('/api/admin/login', async (req, res) => {
       email: staff.Email
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   } finally {
     await db.disconnect();
   }
 });
 
-// Middleware to authenticate admin requests
-const authenticateAdmin = (req, res, next) => {
+// Modify the authentication middleware
+const authenticateAdmin = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
     return res.status(401).json({ error: 'No token provided' });
   }
   
+  const db = new Database();
   try {
-    const decoded = jwt.verify(token, 'your-secret-key');
-    req.staffId = decoded.staffId;
-    next();
+    // Verify token exists in database
+    const [staff] = await db.query('SELECT * FROM Staff WHERE token = ?', [token]);
+    
+    if (!staff) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    try {
+      // Verify token is valid
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.staffId = decoded.staffId;
+      next();
+    } catch (error) {
+      // If token is invalid, clear it from database
+      await db.query('UPDATE Staff SET token = NULL WHERE token = ?', [token]);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    console.error('Authentication error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
+  } finally {
+    await db.disconnect();
   }
 };
 
@@ -385,6 +416,58 @@ app.post('/api/bookings', async (req, res) => {
     }
   });
 
+app.post('/api/bookings/create', async (req, res) => {
+  const db = new Database();
+  try {
+    const { fullName, phone, services, appointmentTime } = req.body;
+
+    await db.query('START TRANSACTION');
+
+    // Check/Create client
+    let clientId;
+    const [existingClient] = await db.query('SELECT ClientID FROM Clients WHERE Phone = ?', [phone]);
+    
+    if (existingClient) {
+      clientId = existingClient.ClientID;
+    } else {
+      const clientResult = await db.query(
+        'INSERT INTO Clients (FullName, Phone) VALUES (?, ?)',
+        [fullName, phone]
+      );
+      clientId = clientResult.insertId;
+    }
+
+    // Generate unique AppointmentServiceID
+    const [maxServiceId] = await db.query('SELECT MAX(AppointmentServiceID) as maxId FROM AppointmentServices');
+    const appointmentServiceId = (maxServiceId.maxId || 0) + 1;
+
+    // Create appointments for each service
+    for (const service of services) {
+      const appointmentResult = await db.query(
+        `INSERT INTO Appointments (ClientID, ServiceID, AppointmentDate, Status, CreatedAt)
+         VALUES (?, ?, ?, 'Requested', NOW())`,
+        [clientId, service.ServiceID, appointmentTime]
+      );
+
+      await db.query(
+        `INSERT INTO AppointmentServices (AppointmentID, ServiceID, Price, AppointmentServiceID)
+         VALUES (?, ?, ?, ?)`,
+        [appointmentResult.insertId, service.ServiceID, service.Price, appointmentServiceId]
+      );
+    }
+
+    await db.query('COMMIT');
+    res.status(201).json({ message: 'Booking created successfully' });
+  } catch (error) {
+    await db.query('ROLLBACK');
+    console.error('Booking error:', error);
+    res.status(500).json({ error: 'Failed to create booking' });
+  } finally {
+    await db.disconnect();
+  }
+});
+
 app.listen(3001, () => {
     console.log('Server running on port 3001');
 });
+

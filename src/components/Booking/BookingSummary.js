@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../styles/BookingSummary.css';
 
 const BookingSummary = ({ data, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,26 +13,36 @@ const BookingSummary = ({ data, onBack }) => {
     setError(null);
     
     try {
-      const response = await fetch('https://rose-petals-backend.vercel.app/api/bookings', {
+      // Format the data properly for the API
+      const bookingData = {
+        fullName: data.fullName,
+        phone: data.phone,
+        services: data.selectedServices.map(service => ({
+          ServiceID: service.ServiceID,
+          Price: service.Price
+        })),
+        appointmentTime: data.appointmentTime.toISOString()
+      };
+
+      const response = await fetch('https://rose-petals-backend.vercel.app/api/bookings/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: data.fullName,
-          phone: data.phone,
-          services: data.selectedServices,
-          appointmentTime: data.appointmentTime
-        })
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
       });
 
       if (!response.ok) {
-        throw new Error('Booking failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Booking failed');
       }
 
       alert('Thank you! Your booking has been requested. You will receive a confirmation message once approved.');
       navigate('/');
       
     } catch (err) {
-      setError('Failed to submit booking. Please try again.');
+      setError(err.message || 'Failed to submit booking. Please try again.');
+      console.error('Booking error:', err);
     } finally {
       setIsSubmitting(false);
     }

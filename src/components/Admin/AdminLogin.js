@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from './AdminContext';
+import '../styles/AdminLogin.css';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAdmin();
+  const { setAdmin } = useAdmin();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,21 +16,53 @@ const AdminLogin = () => {
     setError('');
     
     try {
+      console.log('Attempting login with:', { email: formData.email }); // Debug log
+      
       const response = await fetch('https://rose-petals-backend.vercel.app/api/admin/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password
+        })
       });
-
-      if (!response.ok) {
-        throw new Error('Invalid email or password');
-      }
-
+  
       const data = await response.json();
-      login(data);
+      console.log('Server response:', data); // Debug log
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid email or password');
+      }
+  
+      if (!data.token) {
+        throw new Error('No token received from server');
+      }
+  
+      // Store the complete admin data including name and staffId
+      const adminData = {
+        token: data.token,
+        staffId: data.staffId,
+        name: data.name,
+        email: data.email,
+        isAuthenticated: true
+      };
+  
+      // Set admin data in context
+      setAdmin(adminData);
+      
+      // Debug log to verify data
+      console.log('Login successful, admin data stored:', {
+        ...adminData,
+        token: `${adminData.token.substring(0, 10)}...`
+      });
+      
       navigate('/admin/calendar');
     } catch (err) {
-      setError(err.message);
+      console.error('Login error details:', err);
+      setError(err.message || 'Failed to login. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +92,9 @@ const AdminLogin = () => {
               required
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
+              placeholder="Enter your email"
+              className="admin-input"
+              disabled={isLoading}
             />
           </div>
           
@@ -70,6 +106,9 @@ const AdminLogin = () => {
               required
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
+              placeholder="Enter your password"
+              className="admin-input"
+              disabled={isLoading}
             />
           </div>
           
